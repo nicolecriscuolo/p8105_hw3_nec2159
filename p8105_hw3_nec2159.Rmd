@@ -1,0 +1,13 @@
+---
+title: "p8105_hw3_nec2159"
+author: "Nicole Criscuolo"
+date: "2025-10-02"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(p8105.datasets)
+data("instacart")
+```
+
