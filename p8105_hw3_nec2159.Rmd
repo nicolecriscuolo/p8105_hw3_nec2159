@@ -29,7 +29,7 @@ scale_fill_discrete = scale_fill_viridis_d
 ## Problem 1
 
 ```{r}
-instacart_df =
+aisle_df =
   instacart |> 
   count(aisle) |> 
   arrange(desc(n))
@@ -39,10 +39,10 @@ The goal is to do some exploration of this dataset. To that end, write a short d
 
 The data set includes `r nrow(instacart)` observations and `r ncol(instacart)` variables. Key variables include information about the product ordered (`product_name`, `department`,`aisle`) and when the order was placed (`order_dow`, `order_hour_of_day`), along with information about the customer's order habits (`reorder`, `order_number`, `days_since_prior_order`). 
 
-There are `r nrow(instacart |>  count(aisle))` aisles. The top 5 aisles where most items are ordered from are: `r instacart_df |> filter(row_number() < 6) |> pull(aisle)`.
+There are `r nrow(instacart |>  count(aisle))` aisles. The top 5 aisles where most items are ordered from are: r aisle_df |> filter(row_number() < 6) |> pull(aisle).
 
 ```{r, fig.width = 10, fig.height = 15}
-instacart_df |>
+aisle_df |>
   filter(n > 10000, n < 160000) |> 
   mutate(aisle = forcats::fct_reorder(aisle, n)) |> 
   ggplot(aes(x = n, y = aisle)) +
@@ -71,8 +71,20 @@ popular_items_df =
 print(popular_items_df)
 ```
 
+Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
 
+```{r}
+mean_hour_df =
+  instacart |> 
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) |> 
+  group_by(order_dow) |> 
+  summarize(
+    mean_hour_ordered = mean(order_hour_of_day)
+  ) |> 
+  knitr::kable()
 
+print(mean_hour_df)
+```
 
 
 
