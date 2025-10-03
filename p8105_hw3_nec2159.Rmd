@@ -7,6 +7,7 @@ output: github_document
 
 ```{r setup, include=FALSE}
 library(tidyverse)
+library(dplyr)
 library(p8105.datasets)
 data("instacart") 
 knitr::opts_chunk$set(
@@ -35,13 +36,12 @@ aisle_df =
   arrange(desc(n))
 ```
 
-The goal is to do some exploration of this dataset. To that end, write a short description of the dataset, noting the size and structure of the data, describing some key variables, and giving illstrative examples of observations. Then, do or answer the following (commenting on the results of each):
+The data set includes `r nrow(instacart)` observations and `r ncol(instacart)` variables. Key variables include information about the product ordered (`product_name`, `department`,`aisle`) and when the order was placed (`order_dow`, `order_hour_of_day`), along with information about the customer's order habits (`reorder`, `order_number`, `days_since_prior_order`). The table gives this information pertaining to each item ordered. In other words, it lists out all the items that were ordered each time they were ordered. The other variables then tell us about the order each item belonged to (each time it was ordered) and other information as described above. 
 
-The data set includes `r nrow(instacart)` observations and `r ncol(instacart)` variables. Key variables include information about the product ordered (`product_name`, `department`,`aisle`) and when the order was placed (`order_dow`, `order_hour_of_day`), along with information about the customer's order habits (`reorder`, `order_number`, `days_since_prior_order`). 
-
-There are `r nrow(instacart |>  count(aisle))` aisles. The top 5 aisles where most items are ordered from are: r aisle_df |> filter(row_number() < 6) |> pull(aisle).
+There are `r nrow(instacart |>  count(aisle))` aisles. The top 5 aisles where most items are ordered from are: `r aisle_df |> filter(row_number() < 6) |> pull(aisle)`.
 
 ```{r, fig.width = 10, fig.height = 15}
+items_ordered_plot = 
 aisle_df |>
   filter(n > 10000, n < 160000) |> 
   mutate(aisle = forcats::fct_reorder(aisle, n)) |> 
@@ -54,8 +54,6 @@ aisle_df |>
     caption = "Data from Instacart"
   ) 
 ```
-
-Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
 
 ```{r}
 popular_items_df =
@@ -71,8 +69,6 @@ popular_items_df =
 print(popular_items_df)
 ```
 
-Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
-
 ```{r}
 mean_hour_df =
   instacart |> 
@@ -85,6 +81,75 @@ mean_hour_df =
 
 print(mean_hour_df)
 ```
+
+## Problem 2
+
+```{r message = FALSE}
+zip_df =
+  read_csv("data/Zip Codes.csv") |> 
+  janitor::clean_names() |> 
+  select(-state_fips, -file_date, -county) |> 
+  distinct(zip_code, .keep_all = TRUE)
+
+zori_df =
+  read_csv("data/Zip_zori_NYC.csv") |> 
+  pivot_longer(
+    cols = "2015-01-31":"2024-08-31",
+    names_to = "date",
+    values_to = "zori"
+  ) |> 
+  janitor::clean_names() |> 
+  rename(zip_code = region_name) |> 
+  select(-region_type, -state_name, -state, -city, -metro) |> 
+  separate(date, into = c("year", "month", "day"), sep = "-") |> 
+  mutate(borough = case_match(
+    county_name,
+      "Bronx County" ~ "The Bronx",
+      "Kings County" ~ "Brookyln",
+      "New York County" ~ "Manhattan",
+      "Queens County" ~ "Queens",
+      "Richmond County" ~ "Staten Island"
+    )
+  )
+
+zip_zori_df =
+  left_join(zori_df, zip_df) |> 
+  arrange(zip_code)
+```
+
+
+** There are `r nrow(zip_zori_df |> drop_na(zori) |> count(zip_code) |> filter(n == 116))` ZIP codes observed 116 times. There are `r nrow(zip_zori_df |> drop_na(zori) |> count(zip_code) |> filter(n < 10))` ZIP codes observed fewer than 10 times. ##Why are some ZIP codes are observed rarely and others observed in each month?##
+
+Create a reader-friendly table showing the average rental price in each borough and year (not month). Comment on trends in this table.
+
+```{r}
+zip_zori_df |> 
+  group_by(borough, year) |> 
+  summarize(
+    avg_rental_price = mean(zori, na.rm = TRUE)
+  ) |> 
+  knitr::kable()
+
+zip_zori_df |> 
+  group_by(borough) |> 
+  summarize(
+    avg_rental_price = mean(zori, na.rm = TRUE)
+  ) |> 
+  knitr::kable()
+
+zip_zori_df |> 
+  group_by(year) |> 
+  summarize(
+    avg_rental_price = mean(zori, na.rm = TRUE)
+  ) |> 
+  knitr::kable()
+```
+
+
+
+
+
+
 
 
 
