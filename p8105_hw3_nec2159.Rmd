@@ -38,7 +38,7 @@ aisle_df =
 
 The data set includes `r nrow(instacart)` observations and `r ncol(instacart)` variables. Key variables include information about the product ordered (`product_name`, `department`,`aisle`) and when the order was placed (`order_dow`, `order_hour_of_day`), along with information about the customer's order habits (`reorder`, `order_number`, `days_since_prior_order`). The table gives this information pertaining to each item ordered. In other words, it lists out all the items that were ordered each time they were ordered. The other variables then tell us about the order each item belonged to (each time it was ordered) and other information as described above. 
 
-There are `r nrow(instacart |>  count(aisle))` aisles. The top 5 aisles where most items are ordered from are: `r aisle_df |> filter(row_number() < 6) |> pull(aisle)`.
+There are `r nrow(instacart |> count(aisle))` aisles. The top 5 aisles where most items are ordered from are: `r aisle_df |> filter(row_number() < 6) |> pull(aisle)`.
 
 ```{r, fig.width = 10, fig.height = 15}
 items_ordered_plot = 
@@ -145,6 +145,41 @@ zip_zori_df |>
   knitr::kable()
 ```
 
+Make a plot showing NYC Rental Prices within ZIP codes for all available years. Your plot should facilitate comparisons across boroughs. Comment on any significant elements of this plot.
+
+```{r} 
+zip_zori_df |> 
+  group_by(year, zip_code, borough) |> 
+  summarize(
+    avg_rental_price = mean(zori, na.rm = TRUE)
+  ) |> 
+  ggplot(aes(x = borough, y = avg_rental_price)) +
+  geom_violin(aes(fill = borough)) +
+  labs(
+    x = "Borough",
+    y = "Average Rental Price for Each Zip Code",
+    title = "Distribution of Average Rental Prices Across Boroughs",
+    caption = "Data from Zillow"
+  )
+```
+Compute the average rental price within each ZIP code over each month in 2023. Make a reader-friendly plot showing the distribution of ZIP-code-level rental prices across boroughs; put differently, your plot should facilitate the comparison of the distribution of average rental prices across boroughs. Comment on this plot.
+
+```{r}
+zip_zori_df |> 
+  filter(year == 2023) |> 
+  group_by(month, zip_code, borough) |> 
+  summarize(
+    avg_rental_price = mean(zori, na.rm = TRUE)
+  ) |> 
+  ggplot(aes(x = borough, y = avg_rental_price)) +
+  geom_violin(aes(fill = borough)) +
+  labs(
+    x = "Borough",
+    y = "Average Rental Price for Each Zip Code",
+    title = "Distribution of Average Rental Prices Across Boroughs in 2023",
+    caption = "Data from Zillow"
+  )
+```
 
 
 
