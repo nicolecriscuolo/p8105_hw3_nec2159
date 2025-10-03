@@ -55,5 +55,26 @@ instacart_df |>
   ) 
 ```
 
+Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
+
+```{r}
+popular_items_df =
+  instacart |> 
+  filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) |> 
+  count(product_name, aisle) |> 
+  arrange(desc(n)) |> 
+  rename(times_ordered = n) |> 
+  group_by(aisle) |> 
+  filter(row_number() < 4) |> 
+  knitr::kable()
+
+print(popular_items_df)
+```
+
+
+
+
+
+
 
 
