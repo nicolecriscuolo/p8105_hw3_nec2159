@@ -8,6 +8,52 @@ output: github_document
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(p8105.datasets)
-data("instacart")
+data("instacart") 
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
 ```
+
+## Problem 1
+
+```{r}
+instacart_df =
+  instacart |> 
+  count(aisle) |> 
+  arrange(desc(n))
+```
+
+The goal is to do some exploration of this dataset. To that end, write a short description of the dataset, noting the size and structure of the data, describing some key variables, and giving illstrative examples of observations. Then, do or answer the following (commenting on the results of each):
+
+The data set includes `r nrow(instacart)` observations and `r ncol(instacart)` variables. Key variables include information about the product ordered (`product_name`, `department`,`aisle`) and when the order was placed (`order_dow`, `order_hour_of_day`), along with information about the customer's order habits (`reorder`, `order_number`, `days_since_prior_order`). 
+
+There are `r nrow(instacart |>  count(aisle))` aisles. The top 5 aisles where most items are ordered from are: `r instacart_df |> filter(row_number() < 6) |> pull(aisle)`.
+
+```{r, fig.width = 10, fig.height = 15}
+instacart_df |>
+  filter(n > 10000, n < 160000) |> 
+  mutate(aisle = forcats::fct_reorder(aisle, n)) |> 
+  ggplot(aes(x = n, y = aisle)) +
+  geom_col(aes(fill = "purple"), show.legend = FALSE) +
+    labs (
+    x = "Number of Items Ordered",
+    y = "Aisle",
+    title = "Number of Items Ordered from Each Aisle",
+    caption = "Data from Instacart"
+  ) 
+```
+
+
 
