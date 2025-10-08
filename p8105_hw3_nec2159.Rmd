@@ -8,6 +8,7 @@ output: github_document
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(dplyr)
+library(patchwork)
 library(p8105.datasets)
 data("instacart") 
 knitr::opts_chunk$set(
@@ -53,10 +54,12 @@ aisle_df |>
     title = "Number of Items Ordered from Each Aisle",
     caption = "Data from Instacart"
   ) 
+
+print(items_ordered_plot)
 ```
+This plot verifies what we found above, which is that the top 5 aisles where most items are ordered from are fresh vegetables, fresh fruits, packaged vegetables and fruits, yogurt, and packaged cheese. We can see that the numbers of items ordered from the top 2 aisles, fresh vegetables and fresh fruits, were significantly higher than the numbers of items ordered from the rest of the aisles. Additionally, the bottom 2 aisles out of all the aisles where the number of items ordered exceeds 10000 are butter and oils and vinegars.
 
 ```{r}
-popular_items_df =
   instacart |> 
   filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) |> 
   count(product_name, aisle) |> 
@@ -65,12 +68,10 @@ popular_items_df =
   group_by(aisle) |> 
   filter(row_number() < 4) |> 
   knitr::kable()
-
-print(popular_items_df)
 ```
+The three most popular items in the packaged vegetables and fruits aisle were ordered a significantly larger number of times than the three most popular items in the baking ingredients and dog food care aisles. This makes sense being that we already know the packaged vegetables and fruits aisle is one of the top 5 most popular aisles. Similarly, the three most popular items in the baking ingredients aisle were ordered a significantly larger number of times than the three most popular items in the dog food care aisle. Again this makes sense as our previous plot included baking ingredients (signifying it had over 10000 items ordered) whereas it did not include dog food care (meaning it had less than 10000 items ordered.)
 
 ```{r}
-mean_hour_df =
   instacart |> 
   filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) |> 
   group_by(order_dow) |> 
@@ -78,9 +79,9 @@ mean_hour_df =
     mean_hour_ordered = mean(order_hour_of_day)
   ) |> 
   knitr::kable()
-
-print(mean_hour_df)
 ```
+
+Pink lady apples and coffee ice cream appear to be ordered the most on average during hours 12-14 each day. They are ordered the latest on average on day 3 and the earliest on average on day 1.
 
 ## Problem 2
 
@@ -105,12 +106,13 @@ zori_df =
   mutate(borough = case_match(
     county_name,
       "Bronx County" ~ "The Bronx",
-      "Kings County" ~ "Brookyln",
+      "Kings County" ~ "Brooklyn",
       "New York County" ~ "Manhattan",
       "Queens County" ~ "Queens",
       "Richmond County" ~ "Staten Island"
     )
-  )
+  ) |> 
+  drop_na(zori)
 
 zip_zori_df =
   left_join(zori_df, zip_df) |> 
@@ -118,11 +120,10 @@ zip_zori_df =
 ```
 
 
-** There are `r nrow(zip_zori_df |> drop_na(zori) |> count(zip_code) |> filter(n == 116))` ZIP codes observed 116 times. There are `r nrow(zip_zori_df |> drop_na(zori) |> count(zip_code) |> filter(n < 10))` ZIP codes observed fewer than 10 times. ##Why are some ZIP codes are observed rarely and others observed in each month?##
-
-Create a reader-friendly table showing the average rental price in each borough and year (not month). Comment on trends in this table.
+There are `r nrow(zip_zori_df |> count(zip_code) |> filter(n == 116))` ZIP codes observed 116 times. There are `r nrow(zip_zori_df |> count(zip_code) |> filter(n < 10))` ZIP codes observed fewer than 10 times. The reason why some ZIP codes are observed rarely and other are observed in each month is most likely is due to how Zillow collected the data or the availability of rental properties in each zip code. It is possible Zillow may have only started collecting data in certain zip codes after a certain point in time or certain zip codes don't have many rental properties to collect data on each month.
 
 ```{r}
+avg_price_df =
 zip_zori_df |> 
   group_by(borough, year) |> 
   summarize(
@@ -130,41 +131,29 @@ zip_zori_df |>
   ) |> 
   knitr::kable()
 
-zip_zori_df |> 
-  group_by(borough) |> 
-  summarize(
-    avg_rental_price = mean(zori, na.rm = TRUE)
-  ) |> 
-  knitr::kable()
-
-zip_zori_df |> 
-  group_by(year) |> 
-  summarize(
-    avg_rental_price = mean(zori, na.rm = TRUE)
-  ) |> 
-  knitr::kable()
+print(avg_price_df)
 ```
 
-Make a plot showing NYC Rental Prices within ZIP codes for all available years. Your plot should facilitate comparisons across boroughs. Comment on any significant elements of this plot.
+Each of the boroughs saw an increase in the average rental price from 2015 to 2024. Staten Island is the only borough without data from before 2020. However, Staten Island's average rental price increased from 2020 to 2024. 
 
 ```{r} 
+prices_by_year_plot =
 zip_zori_df |> 
   group_by(year, zip_code, borough) |> 
-  summarize(
-    avg_rental_price = mean(zori, na.rm = TRUE)
-  ) |> 
-  ggplot(aes(x = borough, y = avg_rental_price)) +
-  geom_violin(aes(fill = borough)) +
+  ggplot(aes(x = year, y = zori)) +
+  geom_violin(fill = "blue") +
   labs(
     x = "Borough",
-    y = "Average Rental Price for Each Zip Code",
-    title = "Distribution of Average Rental Prices Across Boroughs",
+    y = "Rental Prices by Zip Code",
+    title = "Rental Prices Across Boroughs",
     caption = "Data from Zillow"
-  )
+  ) +
+  facet_wrap(borough ~ .) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5))
 ```
-Compute the average rental price within each ZIP code over each month in 2023. Make a reader-friendly plot showing the distribution of ZIP-code-level rental prices across boroughs; put differently, your plot should facilitate the comparison of the distribution of average rental prices across boroughs. Comment on this plot.
 
-```{r}
+```{r fig.width = 15, fig.height = 20}
+avg_price_plot =
 zip_zori_df |> 
   filter(year == 2023) |> 
   group_by(month, zip_code, borough) |> 
@@ -178,14 +167,102 @@ zip_zori_df |>
     y = "Average Rental Price for Each Zip Code",
     title = "Distribution of Average Rental Prices Across Boroughs in 2023",
     caption = "Data from Zillow"
+  ) + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5))
+
+(prices_by_year_plot + avg_price_plot)
+```
+
+## Problem 3
+
+```{r}
+demographic_df =
+  read_csv("data/nhanes_covar.csv", skip = 4) |> 
+  janitor::clean_names()
+
+accelerometer_df =
+  read_csv("data/nhanes_accel.csv") |> 
+  janitor::clean_names() |> 
+  pivot_longer(
+    cols = "min1":"min1440",
+    names_to = "min",
+    values_to = "mims",
+    names_prefix = "min"
+  ) |> 
+  mutate(min = as.numeric(min))
+```
+
+```{r}
+full_df =
+  left_join(accelerometer_df, demographic_df) |> 
+  filter(age > 20) |> 
+  drop_na(sex, age, bmi, education) |> 
+  mutate(sex = case_match(
+           sex,
+         1 ~ "male",
+         2 ~ "female"),
+         education = case_match(
+           education,
+           1 ~ "Less than HS",
+           2 ~ "HS Equivalent",
+           3 ~ "More than HS"),
+         education = fct_relevel(education, c("Less than HS", "HS Equivalent", "More than HS")))
+```
+
+```{r}
+full_df |> 
+  count(education, sex) |> 
+  knitr::kable()
+```
+
+```{r}
+full_df |> 
+  ggplot(aes(x = education, y = age, group_by = education)) +
+  geom_violin(aes(fill = sex)) +
+  labs(
+    x = "Education",
+    y = "Age",
+    title = "Age Distributions for Men and Women in Each Education Category",
+    caption = "Data from NHANES Study"
   )
 ```
 
+```{r}
+full_df |> 
+  group_by(seqn, age, education, sex) |> 
+  summarize(
+    total_activity = sum(mims)
+  ) |> 
+  ggplot(aes(x = age, y = total_activity, color = sex)) +
+  geom_point(size = 0.5) +
+  geom_smooth(se = FALSE) +
+  facet_grid(. ~ education) +
+  labs(
+    x = "Age",
+    y = "Total Daily Activity",
+    title = "Total Daily Activity by Age, Sex, and Education Level",
+    caption = "Data from NHANES Study"
+  )
+```
 
-
-
-
-
+```{r}
+full_df |> 
+  group_by(seqn, mims, education, sex) |> 
+  ggplot(aes(x = min, y = mims, color = sex)) +
+  geom_point() +
+  geom_smooth(se = FALSE, color = "red") +
+  facet_grid(sex ~ education) +
+  scale_x_continuous(
+    breaks = c(1, 360, 720, 1080, 1440),
+    labels = c("0", "6", "12", "18", "24")
+  )+
+  labs(
+    x = "Hour",
+    y = "Movement Summary Unit",
+    title = "24 Hour Activity by Sex and Education Level",
+    caption = "Data from NHANES Study"
+  )
+```
 
 
 
