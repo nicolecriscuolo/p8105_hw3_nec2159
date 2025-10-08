@@ -119,7 +119,6 @@ zip_zori_df =
   arrange(zip_code)
 ```
 
-
 There are `r nrow(zip_zori_df |> count(zip_code) |> filter(n == 116))` ZIP codes observed 116 times. There are `r nrow(zip_zori_df |> count(zip_code) |> filter(n < 10))` ZIP codes observed fewer than 10 times. The reason why some ZIP codes are observed rarely and other are observed in each month is most likely is due to how Zillow collected the data or the availability of rental properties in each zip code. It is possible Zillow may have only started collecting data in certain zip codes after a certain point in time or certain zip codes don't have many rental properties to collect data on each month.
 
 ```{r}
@@ -170,7 +169,7 @@ zip_zori_df |>
   ) + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5))
 
-(prices_by_year_plot + avg_price_plot)
+zori_plots = (prices_by_year_plot + avg_price_plot)
 ```
 
 ## Problem 3
