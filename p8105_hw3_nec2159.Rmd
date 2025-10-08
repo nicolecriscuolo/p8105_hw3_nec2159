@@ -151,7 +151,7 @@ zip_zori_df |>
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5))
 ```
 
-```{r fig.width = 15, fig.height = 20}
+```{r fig.width = 30, fig.height = 20}
 avg_price_plot =
 zip_zori_df |> 
   filter(year == 2023) |> 
@@ -170,6 +170,8 @@ zip_zori_df |>
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5))
 
 zori_plots = (prices_by_year_plot + avg_price_plot)
+zori_plots
+ggsave("results/zori_plots.pdf", plot = zori_plots, width = 15, height = 5)
 ```
 
 ## Problem 3
