@@ -69,7 +69,7 @@ This plot verifies what we found above, which is that the top 5 aisles where mos
   filter(row_number() < 4) |> 
   knitr::kable()
 ```
-The three most popular items in the packaged vegetables and fruits aisle were ordered a significantly larger number of times than the three most popular items in the baking ingredients and dog food care aisles. This makes sense being that we already know the packaged vegetables and fruits aisle is one of the top 5 most popular aisles. Similarly, the three most popular items in the baking ingredients aisle were ordered a significantly larger number of times than the three most popular items in the dog food care aisle. Again this makes sense as our previous plot included baking ingredients (signifying it had over 10000 items ordered) whereas it did not include dog food care (meaning it had less than 10000 items ordered.)
+The three most popular items in the packaged vegetables and fruits aisle were ordered a significantly larger number of times than the three most popular items in the baking ingredients and dog food care aisles. This makes sense being that we already know the packaged vegetables and fruits aisle is one of the top 5 most popular aisles. Similarly, the three most popular items in the baking ingredients aisle were ordered a significantly larger number of times than the three most popular items in the dog food care aisle. Again this makes sense as our previous plot included baking ingredients (signifying it had over 10000 items ordered) whereas it did not include dog food care (meaning it had less than 10000 items ordered).
 
 ```{r}
   instacart |> 
@@ -122,15 +122,12 @@ zip_zori_df =
 There are `r nrow(zip_zori_df |> count(zip_code) |> filter(n == 116))` ZIP codes observed 116 times. There are `r nrow(zip_zori_df |> count(zip_code) |> filter(n < 10))` ZIP codes observed fewer than 10 times. The reason why some ZIP codes are observed rarely and other are observed in each month is most likely is due to how Zillow collected the data or the availability of rental properties in each zip code. It is possible Zillow may have only started collecting data in certain zip codes after a certain point in time or certain zip codes don't have many rental properties to collect data on each month.
 
 ```{r}
-avg_price_df =
 zip_zori_df |> 
   group_by(borough, year) |> 
   summarize(
     avg_rental_price = mean(zori, na.rm = TRUE)
   ) |> 
   knitr::kable()
-
-print(avg_price_df)
 ```
 
 Each of the boroughs saw an increase in the average rental price from 2015 to 2024. Staten Island is the only borough without data from before 2020. However, Staten Island's average rental price increased from 2020 to 2024. 
@@ -139,19 +136,22 @@ Each of the boroughs saw an increase in the average rental price from 2015 to 20
 prices_by_year_plot =
 zip_zori_df |> 
   group_by(year, zip_code, borough) |> 
-  ggplot(aes(x = year, y = zori)) +
+  summarize(
+    avg_rental_price = mean(zori, na.rm = TRUE)
+  ) |> 
+  ggplot(aes(x = year, y = avg_rental_price)) +
   geom_violin(fill = "blue") +
   labs(
-    x = "Borough",
-    y = "Rental Prices by Zip Code",
-    title = "Rental Prices Across Boroughs",
+    x = "Year",
+    y = "Average Rental Prices by Zip Code",
+    title = "Average Rental Prices Across Boroughs from 2015-2024",
     caption = "Data from Zillow"
   ) +
   facet_wrap(borough ~ .) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5))
 ```
 
-```{r fig.width = 30, fig.height = 20}
+```{r fig.width = 15, fig.height = 20}
 avg_price_plot =
 zip_zori_df |> 
   filter(year == 2023) |> 
@@ -163,7 +163,7 @@ zip_zori_df |>
   geom_violin(aes(fill = borough)) +
   labs(
     x = "Borough",
-    y = "Average Rental Price for Each Zip Code",
+    y = "Average Rental Price for Each Zip Code by Month",
     title = "Distribution of Average Rental Prices Across Boroughs in 2023",
     caption = "Data from Zillow"
   ) + 
@@ -173,6 +173,9 @@ zori_plots = (prices_by_year_plot + avg_price_plot)
 zori_plots
 ggsave("results/zori_plots.pdf", plot = zori_plots, width = 15, height = 5)
 ```
+In the rental prices across boroughs plot, we can see the distributions of average rental prices by zip code for each year from 2015 to 2024 in each borough. Each borough is similar in the sense that average rent prices appear to increase by year. Manhattan is the borough with the widest range of rental prices, most likely because it is the most densely populated and offers a wide variety of rental options. The Bronx appears to have increased the most in price on average as the centers of each violin plot appear to be increasing almost exponentially. Manhattan had the largest increase in maximum average rental price as it appears to have almost doubled. Lastly, Brooklyn has the widest plots each year signifying many zip codes share similar average rental prices when compared to other boroughs.
+
+In the distribution of average rental prices plot, we can see the distributions of average rental prices grouped by month and zip code for each borough. We see that Manhattan has the widest range of average rental prices throughout the year, which makes sense for the same reason explained above. Staten Island has the widest plot, meaning many zip codes throughout the months in 2023 share similar average rental prices when compared to other boroughs. While Staten Island is the widest overall, the other boroughs, excluding Manhattan, also bulge around the same rental price level where Staten Island's distribution is widest. This means most zip codes across the boroughs (excluding Manhattan) have average rental prices in the $2000-3000 range for the months in 2023. 
 
 ## Problem 3
 
@@ -212,14 +215,17 @@ full_df =
 
 ```{r}
 full_df |> 
+  distinct(seqn, education, sex) |> 
   count(education, sex) |> 
   knitr::kable()
 ```
+There are more females than males in the education groups "less than HS" and "more than HS", but not by much. There are significantly more males than females in the "HS equivalent" education group. There are significantly more males and females in the "more than HS" education category than the other education categories. 
 
 ```{r}
 full_df |> 
-  ggplot(aes(x = education, y = age, group_by = education)) +
-  geom_violin(aes(fill = sex)) +
+  distinct(seqn, education, age, sex) |>
+  ggplot(aes(x = education, y = age, group_by = sex)) +
+  geom_boxplot(aes(fill = sex)) +
   labs(
     x = "Education",
     y = "Age",
@@ -227,6 +233,8 @@ full_df |>
     caption = "Data from NHANES Study"
   )
 ```
+
+The age distributions of males and females appear to differ the most for the education category "HS equivalent." In this education category, the females tend to be older than the males. The age distributions of males and females appear to be very similar to each other in both the "less than HS" and "more than HS" education categories. 
 
 ```{r}
 full_df |> 
@@ -246,6 +254,8 @@ full_df |>
   )
 ```
 
+The "more than HS" education category is the group where the total activity for both males and females varies the least by age. In this group, there is a slight decline in total daily activity around age 60, which we could expect. The "less than HS" education category is the group where the total activity for both males and females declines the most with age. In this group, there is a steady decline in total daily activity, with a spike in both males and females around age 60. In the "HS equivalent" education group, the total daily activity of females varies more by age than the total daily activity of males by age. In this group, there is an overall decline but there is a peak around age 40 and a valley around age 60 for both males and females. It makes sense that the most educated group has the most consistent total daily activity by age, as these individuals most likely understand the benefits of exercising and have the time and means to do so. Similarly, individuals with the least amount of education most likely do not have the time or means to exercise consistently throughout the course of their life. 
+
 ```{r}
 full_df |> 
   group_by(seqn, mims, education, sex) |> 
@@ -264,6 +274,9 @@ full_df |>
     caption = "Data from NHANES Study"
   )
 ```
+
+The trends in 24 hour activity for males and females for all education groups are relatively similar. There is minimal activity from 12-6 am, with most of the activity starting for each group and sex around 6am. Throughout the day, the movement is pretty consistent for all groups and both sexes throughout the day. Looking closely, females and males in the education groups "less than HS" and "HS equivalent" show a very slight decline for the rest of the day after 6am. Additionally, females and males in the "more than HS" education category don't appear to decline until around 8pm.
+
 
 
 
