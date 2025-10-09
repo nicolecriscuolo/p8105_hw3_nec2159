@@ -144,7 +144,7 @@ zip_zori_df |>
   labs(
     x = "Year",
     y = "Average Rental Prices by Zip Code",
-    title = "Average Rental Prices Across Boroughs from 2015-2024",
+    title = "Distribution of Average Rental Prices Across Boroughs from 2015-2024",
     caption = "Data from Zillow"
   ) +
   facet_wrap(borough ~ .) +
@@ -258,10 +258,9 @@ The "more than HS" education category is the group where the total activity for 
 
 ```{r}
 full_df |> 
-  group_by(seqn, mims, education, sex) |> 
   ggplot(aes(x = min, y = mims, color = sex)) +
   geom_point() +
-  geom_smooth(se = FALSE, color = "red") +
+  geom_smooth(se = FALSE, color = "blue") +
   facet_grid(sex ~ education) +
   scale_x_continuous(
     breaks = c(1, 360, 720, 1080, 1440),
@@ -276,8 +275,6 @@ full_df |>
 ```
 
 The trends in 24 hour activity for males and females for all education groups are relatively similar. There is minimal activity from 12-6 am, with most of the activity starting for each group and sex around 6am. Throughout the day, the movement is pretty consistent for all groups and both sexes throughout the day. Looking closely, females and males in the education groups "less than HS" and "HS equivalent" show a very slight decline for the rest of the day after 6am. Additionally, females and males in the "more than HS" education category don't appear to decline until around 8pm.
-
-
 
 
 
