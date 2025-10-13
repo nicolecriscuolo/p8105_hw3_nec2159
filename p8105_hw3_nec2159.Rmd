@@ -30,6 +30,8 @@ scale_fill_discrete = scale_fill_viridis_d
 
 ## Problem 1
 
+The data set includes `r nrow(instacart)` observations and `r ncol(instacart)` variables. Key variables include information about the product ordered (`product_name`, `department`,`aisle`) and when the order was placed (`order_dow`, `order_hour_of_day`), along with information about the customer's order habits (`reorder`, `order_number`, `days_since_prior_order`). The table gives this information pertaining to each item ordered. In other words, it lists out all the items that were ordered each time they were ordered. The other variables then tell us about the order each item belonged to (each time it was ordered) and other information as described above. 
+
 ```{r}
 aisle_df =
   instacart |> 
@@ -37,15 +39,13 @@ aisle_df =
   arrange(desc(n))
 ```
 
-The data set includes `r nrow(instacart)` observations and `r ncol(instacart)` variables. Key variables include information about the product ordered (`product_name`, `department`,`aisle`) and when the order was placed (`order_dow`, `order_hour_of_day`), along with information about the customer's order habits (`reorder`, `order_number`, `days_since_prior_order`). The table gives this information pertaining to each item ordered. In other words, it lists out all the items that were ordered each time they were ordered. The other variables then tell us about the order each item belonged to (each time it was ordered) and other information as described above. 
-
 There are `r nrow(instacart |> count(aisle))` aisles. The top 5 aisles where most items are ordered from are: `r aisle_df |> filter(row_number() < 6) |> pull(aisle)`.
 
 ```{r, fig.width = 10, fig.height = 15}
 items_ordered_plot = 
 aisle_df |>
   filter(n > 10000, n < 160000) |> 
-  mutate(aisle = forcats::fct_reorder(aisle, n)) |> 
+  mutate(aisle = fct_reorder(aisle, n)) |> 
   ggplot(aes(x = n, y = aisle)) +
   geom_col(aes(fill = "purple"), show.legend = FALSE) +
     labs (
@@ -57,6 +57,7 @@ aisle_df |>
 
 print(items_ordered_plot)
 ```
+
 This plot verifies what we found above, which is that the top 5 aisles where most items are ordered from are fresh vegetables, fresh fruits, packaged vegetables and fruits, yogurt, and packaged cheese. We can see that the numbers of items ordered from the top 2 aisles, fresh vegetables and fresh fruits, were significantly higher than the numbers of items ordered from the rest of the aisles. Additionally, the bottom 2 aisles out of all the aisles where the number of items ordered exceeds 10000 are butter and oils and vinegars.
 
 ```{r}
@@ -85,7 +86,7 @@ Pink lady apples and coffee ice cream appear to be ordered the most on average d
 
 ## Problem 2
 
-```{r message = FALSE}
+```{r}
 zip_df =
   read_csv("data/Zip Codes.csv") |> 
   janitor::clean_names() |> 
@@ -173,9 +174,10 @@ zori_plots = (prices_by_year_plot + avg_price_plot)
 zori_plots
 ggsave("results/zori_plots.pdf", plot = zori_plots, width = 15, height = 5)
 ```
+
 In the rental prices across boroughs plot, we can see the distributions of average rental prices by zip code for each year from 2015 to 2024 in each borough. Each borough is similar in the sense that average rent prices appear to increase by year. Manhattan is the borough with the widest range of rental prices, most likely because it is the most densely populated and offers a wide variety of rental options. The Bronx appears to have increased the most in price on average as the centers of each violin plot appear to be increasing almost exponentially. Manhattan had the largest increase in maximum average rental price as it appears to have almost doubled. Lastly, Brooklyn has the widest plots each year signifying many zip codes share similar average rental prices when compared to other boroughs.
 
-In the distribution of average rental prices plot, we can see the distributions of average rental prices grouped by month and zip code for each borough. We see that Manhattan has the widest range of average rental prices throughout the year, which makes sense for the same reason explained above. Staten Island has the widest plot, meaning many zip codes throughout the months in 2023 share similar average rental prices when compared to other boroughs. While Staten Island is the widest overall, the other boroughs, excluding Manhattan, also bulge around the same rental price level where Staten Island's distribution is widest. This means most zip codes across the boroughs (excluding Manhattan) have average rental prices in the $2000-3000 range for the months in 2023. 
+In the distribution of average rental prices in 2023 plot, we can see the distributions of average rental prices grouped by month and zip code for each borough. We see that Manhattan has the widest range of average rental prices throughout the year, which makes sense for the same reason explained above. Staten Island has the widest plot, meaning many zip codes throughout the months in 2023 share similar average rental prices when compared to other boroughs. While Staten Island is the widest overall, the other boroughs, excluding Manhattan, also bulge around the same rental price level where Staten Island's distribution is widest. This means most zip codes across the boroughs (excluding Manhattan) have average rental prices in the $2000-3000 range for the months in 2023. 
 
 ## Problem 3
 
@@ -219,13 +221,13 @@ full_df |>
   count(education, sex) |> 
   knitr::kable()
 ```
-There are more females than males in the education groups "less than HS" and "more than HS", but not by much. There are significantly more males than females in the "HS equivalent" education group. There are significantly more males and females in the "more than HS" education category than the other education categories. 
+There are more females than males in the education groups "less than HS" and "more than HS," but not by much. There are significantly more males than females in the "HS equivalent" education group. There are significantly more males and females in the "more than HS" education category than the other education categories. 
 
 ```{r}
 full_df |> 
   distinct(seqn, education, age, sex) |>
   ggplot(aes(x = education, y = age, group_by = sex)) +
-  geom_boxplot(aes(fill = sex)) +
+  geom_boxplot(color = "purple", aes(fill = sex)) +
   labs(
     x = "Education",
     y = "Age",
@@ -254,7 +256,7 @@ full_df |>
   )
 ```
 
-The "more than HS" education category is the group where the total activity for both males and females varies the least by age. In this group, there is a slight decline in total daily activity around age 60, which we could expect. The "less than HS" education category is the group where the total activity for both males and females declines the most with age. In this group, there is a steady decline in total daily activity, with a spike in both males and females around age 60. In the "HS equivalent" education group, the total daily activity of females varies more by age than the total daily activity of males by age. In this group, there is an overall decline but there is a peak around age 40 and a valley around age 60 for both males and females. It makes sense that the most educated group has the most consistent total daily activity by age, as these individuals most likely understand the benefits of exercising and have the time and means to do so. Similarly, individuals with the least amount of education most likely do not have the time or means to exercise consistently throughout the course of their life. 
+The "more than HS" education category is the group where the total activity for both males and females varies the least by age. In this group, there is a slight decline in total daily activity around age 60, which we could expect. The "less than HS" education category is the group where the total activity for both males and females declines the most with age. In this group, there is a steady decline in total daily activity, with a spike in both males and females around age 60. In the "HS equivalent" education group, the total daily activity of females varies more by age than the total daily activity of males by age. In this group, there is an overall decline but there is a peak around age 40 and a dip around age 60 for both males and females. It makes sense that the most educated group has the most consistent total daily activity by age, as these individuals most likely understand the benefits of exercising and have the time and means to do so. Similarly, individuals with the least amount of education most likely do not have the time or means to exercise consistently throughout the course of their life. 
 
 ```{r}
 full_df |> 
@@ -265,7 +267,7 @@ full_df |>
   scale_x_continuous(
     breaks = c(1, 360, 720, 1080, 1440),
     labels = c("0", "6", "12", "18", "24")
-  )+
+  ) +
   labs(
     x = "Hour",
     y = "Movement Summary Unit",
